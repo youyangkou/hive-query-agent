@@ -9,6 +9,7 @@ import com.victor.console.entity.HiveQueryBean;
 import com.victor.console.service.HiveQueryService;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,7 +93,11 @@ public class HiveQueryController {
     public RestResponse log(@ApiParam(value = "query_id") String query_id) {
         HiveQueryBean hiveQueryBean = hiveQueryService.get(query_id);
         if (hiveQueryBean != null) {
-            return RestResponse.success(hiveQueryBean.getLog());
+            String log = hiveQueryBean.getLog();
+            if(StringUtils.isEmpty(log)){
+               log="There is currently no log generated for the job！";
+            }
+            return RestResponse.success(log);
         } else {
             return RestResponse.fail("sorry,this query has no log,please check it!", ResponseCode.CODE_FAIL);
         }
