@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.victor.console.dao.HiveQueryMapper">
+
+    <resultMap id="hiveQueryBeanMap" type="com.victor.console.entity.HiveQueryBean">
+        <result column="query_id"       property="queryId"/>
+        <result column="query_sql"      property="querySql"/>
+        <result column="project"        property="project"/>
+        <result column="tmp_table"      property="tmpTable"/>
+        <result column="is_only_query"  property="isOnlyQuery"/>
+        <result column="query_state"    property="queryState"/>
+        <result column="log"            property="log"/>
+        <result column="update_time"    property="updateTime"/>
+    </resultMap>
+
+
+    <insert id="addHiveQueryBean" parameterType="com.victor.console.entity.HiveQueryBean">
+            insert into hive_query_bean(query_id,query_sql,project,tmp_table,is_only_query,query_state,log,update_time)
+             values(#{queryId}, #{querySql},#{project},#{tmpTable},#{isOnlyQuery},#{queryState},#{log},#{updateTime})
+             ON DUPLICATE KEY
+             UPDATE
+             query_id = VALUES(query_id),
+             query_sql=VALUES(query_sql),
+             project=VALUES(project),
+             tmp_table=VALUES(tmp_table),
+             is_only_query=VALUES(is_only_query),
+             query_state=VALUES(query_state),
+             log=VALUES(log),
+             update_time=VALUES(update_time)
+    </insert>
+
+    <update id="updateHiveQueryBean" parameterType="com.victor.console.entity.HiveQueryBean">
+            update hive_query_bean set
+            query_id = #{queryId},
+            query_sql = #{querySql},
+            project = #{project},
+            tmp_table = #{tmpTable},
+            is_only_query=#{isOnlyQuery},
+            query_state=#{queryState},
+            log=#{log},
+            update_time=#{updateTime}
+            where query_id = #{queryId}
+    </update>
+
+
+    <delete id="deleteHiveQueryBean" parameterType="String">
+            delete from hive_query_bean
+            where query_id = #{queryId}
+    </delete>
+
+
+</mapper>
