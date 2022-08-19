@@ -69,7 +69,12 @@ public class HiveClient {
                 } else {
                     //需要异步执行的query,缓存其HiveStatement对象,以提供cancel的功能
                     statementMap.put(queryInstance, stmt);
-                    stmt.executeAsync(sql);
+                    try {
+                        stmt.executeAsync(sql);
+                    }catch (Exception e){
+                        statementMap.remove(queryInstance);
+                        throw new RuntimeException("hive query failed!");
+                    }
                     queryInstance.queryState = QueryState.RUNNING;
                 }
             }
