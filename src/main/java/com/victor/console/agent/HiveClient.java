@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HiveClient {
 
     private static String driverName = "org.apache.hive.jdbc.HiveDriver";
-    private static String url = "jdbc:hive2://localhost:10000/default";
-    private static String user = "root";
-    private static String password = "";
+    private static String url = "jdbc:hive2://localhost:10000/test";
+    private static String user = "test";
+    private static String password = "test1234";
     private static Map<QueryInstance, HiveStatement> statementMap = new ConcurrentHashMap<>();
     private Connection conn;
 

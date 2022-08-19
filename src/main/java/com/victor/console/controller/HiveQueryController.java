@@ -99,7 +99,7 @@ public class HiveQueryController {
             }
             return RestResponse.success(log);
         } else {
-            return RestResponse.fail("sorry,this query has no log,please check it!", ResponseCode.CODE_FAIL);
+            return RestResponse.fail("Sorry, there is no such inquiry.!", ResponseCode.CODE_FAIL);
         }
     }
 
