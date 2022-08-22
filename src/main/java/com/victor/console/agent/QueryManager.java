@@ -68,7 +68,6 @@ public class QueryManager {
                                                                queryInstance = hiveClient.executeQuery(queryInstance);
                                                                changeHiveQueryState(queryInstance);
 
-
                                                                if (!queryInstance.isOnlyQuery) {
                                                                    //等待执行，获取执行日志和执行状态
                                                                    queryInstance = hiveClient.waitForOperationToComplete(queryInstance);
@@ -78,17 +77,16 @@ public class QueryManager {
                                                                        QUERY_MAP.remove(queryId);
                                                                    }
                                                                }
+                                                               log.info("执行成功,query_id={},QUERY_BEAN:{}", queryId, queryInstance);
                                                            } catch (Exception e) {
+                                                               log.error("执行出现异常,query_id={},QUERY_BEAN:{}", queryId, queryInstance);
                                                                if (queryInstance == null || StringUtils.isEmpty(queryId)) {
                                                                    return;
                                                                }
-
                                                                queryInstance.queryState = QueryState.FAILED;
                                                                changeHiveQueryState(queryInstance);
                                                                QUERY_MAP.remove(queryId);
                                                            }
-
-                                                           log.info("QUERY_BEAN:" + queryInstance);
                                                        }
                                                        log.info("PENDING_QUEUE size:" + PENDING_QUEUE.size());
                                                    }

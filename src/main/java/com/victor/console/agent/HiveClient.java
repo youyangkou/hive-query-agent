@@ -55,6 +55,7 @@ public class HiveClient {
 
             if (!StringUtils.isEmpty(queryId)) {
                 if (queryInstance.isOnlyQuery) {
+                    log.info("SQL:{}，是只查询SQL，不创建临时表", queryInstance.querySql);
                     try {
                         queryInstance.result = parseResultSet(stmt.executeQuery(sql));
                         queryInstance.queryState = QueryState.SUCCESS;
@@ -70,16 +71,18 @@ public class HiveClient {
                     //需要异步执行的query,缓存其HiveStatement对象,以提供cancel的功能
                     statementMap.put(queryInstance, stmt);
                     try {
+                        log.info("SQL:{}，开始异步执行，创建临时表{}", queryInstance.querySql, queryInstance.tmpTable);
                         stmt.executeAsync(sql);
-                    }catch (Exception e){
+                        queryInstance.queryState = QueryState.RUNNING;
+                        log.info("查询已异步提交，query_id={},queryInstance={}", queryId, queryInstance);
+                    } catch (Exception e) {
                         statementMap.remove(queryInstance);
+                        log.error("SQL:{}，异步执行发生异常", queryInstance.querySql);
                         throw new RuntimeException("hive query failed!");
                     }
-                    queryInstance.queryState = QueryState.RUNNING;
                 }
             }
         }
-
         return queryInstance;
     }
 
@@ -133,36 +136,40 @@ public class HiveClient {
      * @throws Exception
      */
     public QueryInstance waitForOperationToComplete(QueryInstance queryInstance) throws Exception {
-        HiveStatement stmt = queryInstance.stmt;
+        log.info("等待SQL异步执行,SQL:{}", queryInstance.querySql);
+        HiveStatement stmt = queryInstance.getStmt();
         StringBuilder sb = new StringBuilder();
-
-        boolean isEnd = false;
-        int i = 0;
-        while (!isEnd) {
-            if (queryInstance.queryState == QueryState.CANCELLED) {
-                isEnd = true;
-            } else {
-                Tuple2<String, Boolean> execterLogBean = getExecterLog(stmt, true, isEnd);
-                isEnd = execterLogBean._2;
-                sb.append(execterLogBean._1);
-                if (isEnd) queryInstance.queryState = QueryState.SUCCESS;
+        if (stmt != null) {
+            boolean isEnd = false;
+            int i = 0;
+            while (!isEnd) {
+                if (queryInstance.queryState == QueryState.CANCELLED) {
+                    isEnd = true;
+                } else {
+                    Tuple2<String, Boolean> execterLogBean = getExecterLog(stmt, true, isEnd);
+                    isEnd = execterLogBean._2;
+                    sb.append(execterLogBean._1);
+                    if (isEnd) queryInstance.queryState = QueryState.SUCCESS;
+                }
+                i++;
+                if (i > 1000) {
+                    log.info("查询超时被关闭,query_sql={}", queryInstance.querySql);
+                    isEnd = true;
+                    stmt.cancel();
+                    stmt.close();
+                    queryInstance.queryState = QueryState.FAILED;
+                }
+                Thread.sleep(5000);
             }
-            i++;
-            if (i > 1000) {
-                log.info("查询超时被关闭,query_sql={}", queryInstance.querySql);
-                isEnd = true;
-                stmt.cancel();
-                stmt.close();
-                queryInstance.queryState = QueryState.FAILED;
+            queryInstance.log = sb.toString();
+
+            if (!Strings.isNullOrEmpty(queryInstance.queryId) && statementMap.containsKey(queryInstance)) {
+                statementMap.remove(queryInstance);
             }
-            Thread.sleep(5000);
+        } else {
+            log.error("sql {} stmt has been close!", queryInstance.getQueryId());
+            throw new RuntimeException(String.format("sql [%s] stmt has been close !", queryInstance.getQueryId()));
         }
-        queryInstance.log = sb.toString();
-
-        if (!Strings.isNullOrEmpty(queryInstance.queryId) && statementMap.containsKey(queryInstance)) {
-            statementMap.remove(queryInstance);
-        }
-
         return queryInstance;
     }
 

@@ -3,6 +3,7 @@ package com.victor.console.agent;
 import com.google.common.base.Objects;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import org.apache.hive.jdbc.HiveStatement;
 
 
@@ -12,6 +13,7 @@ import org.apache.hive.jdbc.HiveStatement;
  */
 @Data
 @Builder
+@ToString
 public class QueryInstance {
 
     /**
