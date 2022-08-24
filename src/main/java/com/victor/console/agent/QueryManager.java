@@ -173,13 +173,13 @@ public class QueryManager {
             sql = sql.substring(0, sql.length() - 1);
         }
 
-        String queryId = String.valueOf(sql.toLowerCase().replaceAll(" ", "").trim().hashCode());
+        String ds = TimeUtil.getToday();
+
+        String queryId = String.valueOf(sql.toLowerCase().replaceAll(" ", "").trim().hashCode()).concat("_").concat(ds);
         String tmpTable = "";
 
         if (!isOnlyQuery) {
-            String ds = TimeUtil.getToday();
             tmpTable = "tmp_" + UUID.randomUUID().toString().replace("-", "_") + "_" + ds;
-
             StringBuilder ddlSQL = new StringBuilder("Create Table ")
                     .append(project)
                     .append(".")

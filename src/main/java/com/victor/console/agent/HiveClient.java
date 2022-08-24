@@ -54,6 +54,8 @@ public class HiveClient {
             queryInstance.stmt = stmt;
 
             if (!StringUtils.isEmpty(queryId)) {
+                String useDBsql = new StringBuilder("use ").append(queryInstance.project).toString();
+                stmt.execute(useDBsql);
                 if (queryInstance.isOnlyQuery) {
                     log.info("SQL:{}，是只查询SQL，不创建临时表", queryInstance.querySql);
                     try {

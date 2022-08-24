@@ -1,5 +1,5 @@
 server:
-  port: 8889
+  port: 8089
   undertow:
     buffer-size: 1024
     direct-buffers: true
