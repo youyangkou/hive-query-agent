@@ -61,6 +61,11 @@ public class QueryInstance {
      */
     String result;
 
+    /**
+     * the timestamp of start execution/second
+     */
+    long executionTime;
+
 
     @Override
     public boolean equals(Object o) {

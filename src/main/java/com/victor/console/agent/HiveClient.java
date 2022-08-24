@@ -54,6 +54,7 @@ public class HiveClient {
             queryInstance.stmt = stmt;
 
             if (!StringUtils.isEmpty(queryId)) {
+                queryInstance.setExecutionTime(System.currentTimeMillis() / 1000);
                 String useDBsql = new StringBuilder("use ").append(queryInstance.project).toString();
                 stmt.execute(useDBsql);
                 if (queryInstance.isOnlyQuery) {
@@ -131,14 +132,14 @@ public class HiveClient {
 
 
     /**
-     * 等待异步执行，获取执行日志
+     * 等待异步执行，执行完成获取执行日志
      *
      * @param queryInstance
      * @return
      * @throws Exception
      */
     public QueryInstance waitForOperationToComplete(QueryInstance queryInstance) throws Exception {
-        log.info("等待SQL异步执行,SQL:{}", queryInstance.querySql);
+        log.info("SQL异步执行中,SQL:{}", queryInstance.querySql);
         HiveStatement stmt = queryInstance.getStmt();
         StringBuilder sb = new StringBuilder();
         if (stmt != null) {
@@ -151,6 +152,7 @@ public class HiveClient {
                     Tuple2<String, Boolean> execterLogBean = getExecterLog(stmt, true, isEnd);
                     isEnd = execterLogBean._2;
                     sb.append(execterLogBean._1);
+                    queryInstance.log = sb.toString();
                     if (isEnd) queryInstance.queryState = QueryState.SUCCESS;
                 }
                 i++;
@@ -163,7 +165,7 @@ public class HiveClient {
                 }
                 Thread.sleep(5000);
             }
-            queryInstance.log = sb.toString();
+
 
             if (!Strings.isNullOrEmpty(queryInstance.queryId) && statementMap.containsKey(queryInstance)) {
                 statementMap.remove(queryInstance);
@@ -176,6 +178,64 @@ public class HiveClient {
     }
 
 
+    /**
+     * 获取查询日志，适合配合waitForOperationToComplete方法使用，日志获取完成才会返回给客户端
+     * @param queryInstance
+     * @param incremental
+     * @return
+     * @throws SQLException
+     */
+    private QueryInstance getExecterLog(QueryInstance queryInstance, boolean incremental) throws SQLException {
+        HiveStatement stmt = queryInstance.getStmt();
+        List<String> queryLog = stmt.getQueryLog(incremental, 100);
+        if (queryLog.size() > 0) {
+            String log = queryInstance.log == null ? "" : queryInstance.log;
+            StringBuilder sb = new StringBuilder(log);
+            for (String logItem : queryLog) {
+                sb.append(logItem + "\n");
+                queryInstance.log = sb.toString();
+                if (logItem.contains("INFO  : OK")) {
+                    queryInstance.queryState = QueryState.SUCCESS;
+                }
+            }
+        }
+        return queryInstance;
+    }
+
+
+    /**
+     * 等待异步执行，客户端使用while循环调用
+     * @param queryInstance
+     * @return
+     * @throws Exception
+     */
+    public QueryInstance waitExecutionForComplete(QueryInstance queryInstance) throws Exception {
+        log.info("SQL异步执行中,SQL:{}", queryInstance.querySql);
+        HiveStatement stmt = queryInstance.getStmt();
+        if (stmt != null) {
+            queryInstance = getExecterLog(queryInstance, true);
+            if (!Strings.isNullOrEmpty(queryInstance.queryId)
+                    && queryInstance.queryState == QueryState.SUCCESS
+                    && statementMap.containsKey(queryInstance)) {
+                statementMap.remove(queryInstance);
+            }
+        } else {
+            log.error("sql {} stmt has been close!", queryInstance.getQueryId());
+            throw new RuntimeException(String.format("sql [%s] stmt has been close !", queryInstance.getQueryId()));
+        }
+        Thread.sleep(5000);
+        return queryInstance;
+    }
+
+
+    /**
+     * 获取查询日志，适合配合waitExecutionForComplete使用，客户端使用while循环可以不断获取日志输出
+     * @param stmt
+     * @param incremental
+     * @param isEnd
+     * @return
+     * @throws SQLException
+     */
     private Tuple2<String, Boolean> getExecterLog(HiveStatement stmt, boolean incremental, boolean isEnd) throws SQLException {
         StringBuilder sb = new StringBuilder();
         List<String> queryLog = stmt.getQueryLog(incremental, 100);
@@ -189,6 +249,8 @@ public class HiveClient {
         }
         return Tuple2.apply(sb.toString(), isEnd);
     }
+
+
 
 
     /**

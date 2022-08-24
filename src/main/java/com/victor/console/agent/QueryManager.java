@@ -70,8 +70,15 @@ public class QueryManager {
 
                                                                if (!queryInstance.isOnlyQuery) {
                                                                    //等待执行，获取执行日志和执行状态
-                                                                   queryInstance = hiveClient.waitForOperationToComplete(queryInstance);
-                                                                   changeHiveQueryState(queryInstance);
+                                                                   while (queryInstance.queryState == QueryState.RUNNING) {
+                                                                       queryInstance = hiveClient.waitExecutionForComplete(queryInstance);
+                                                                       changeHiveQueryState(queryInstance);
+                                                                       long runTime = System.currentTimeMillis() / 1000 - queryInstance.getExecutionTime();
+                                                                       if (runTime > 3600) {
+                                                                           log.info("查询超时被取消,query_sql={}", queryInstance.querySql);
+                                                                           hiveClient.cancelQuery(queryInstance);
+                                                                       }
+                                                                   }
                                                                    //执行成功，将queryId从QUERY_MAP中删除
                                                                    if (queryInstance.queryState == QueryState.SUCCESS) {
                                                                        QUERY_MAP.remove(queryId);
