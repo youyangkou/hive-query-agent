@@ -1,3 +1,4 @@
+use agent;
 create table hive_query_bean
 (
     query_id      varchar(255)                         not null  comment '查询id'
@@ -10,4 +11,4 @@ create table hive_query_bean
     log           text                                 null comment '查询日志',
     update_time   datetime   default CURRENT_TIMESTAMP null comment '更新时间'
 )
- comment 'bdp查询引擎记录表'
+ comment 'hive查询引擎记录表'

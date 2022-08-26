@@ -182,14 +182,12 @@ public class QueryManager {
 
         String ds = TimeUtil.getToday();
 
-        String queryId = String.valueOf(sql.toLowerCase().replaceAll(" ", "").trim().hashCode()).concat("_").concat(ds);
+        String queryId = String.format("%s_%s",sql.toLowerCase().replaceAll(" ", "").trim().hashCode(),ds);
         String tmpTable = "";
 
         if (!isOnlyQuery) {
-            tmpTable = "tmp_" + UUID.randomUUID().toString().replace("-", "_") + "_" + ds;
+            tmpTable = String.format("%s.%s_%s", project, "tmp_" + UUID.randomUUID().toString().replace("-", "_"), ds);
             StringBuilder ddlSQL = new StringBuilder("Create Table ")
-                    .append(project)
-                    .append(".")
                     .append(tmpTable)
                     .append(" as ")
                     .append(sql);
