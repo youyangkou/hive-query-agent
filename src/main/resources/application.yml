@@ -51,3 +51,10 @@ mybatis-plus:
       id-type: auto
     # 关闭 mybatis-plus的 banner
     banner: false
+
+
+hive-conf:
+  driverName: org.apache.hive.jdbc.HiveDriver
+  url: jdbc:hive2://localhost:10000/test
+  user: root
+  passWord: test1234

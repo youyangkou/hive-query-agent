@@ -25,8 +25,10 @@ public class QueryManager {
     private static AtomicInteger executorThreadNum = new AtomicInteger(0);
     private static int delay = 5;
     private boolean started = false;
-    private HiveClient hiveClient = new HiveClient();
     ScheduledExecutorService executorService;
+
+    @Autowired
+    HiveClient hiveClient;
 
     @Autowired
     HiveQueryService hiveQueryService;

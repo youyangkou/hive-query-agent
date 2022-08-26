@@ -3,11 +3,14 @@ package com.victor.console.agent;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.victor.console.conf.HiveConfigProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hive.jdbc.HiveStatement;
 import org.apache.parquet.Strings;
 import org.mortbay.util.ajax.JSON;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import scala.Tuple2;
 
 import javax.annotation.Nullable;
@@ -22,14 +25,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022-08-08
  */
 @Slf4j
+@Component
 public class HiveClient {
 
-    private static String driverName = "org.apache.hive.jdbc.HiveDriver";
-    private static String url = "jdbc:hive2://localhost:10000/test";
-    private static String user = "test";
-    private static String password = "test1234";
     private static Map<QueryInstance, HiveStatement> statementMap = new ConcurrentHashMap<>();
     private Connection conn;
+
+    @Autowired
+    HiveConfigProperties hiveConfigProperties;
 
 
     /**
@@ -305,8 +308,9 @@ public class HiveClient {
 
     private Connection getConn() throws ClassNotFoundException, SQLException {
         if (conn == null) {
-            Class.forName(driverName);
-            conn = DriverManager.getConnection(url, user, password);
+            System.out.println(hiveConfigProperties.toString());
+            Class.forName(hiveConfigProperties.getDriverName());
+            conn = DriverManager.getConnection(hiveConfigProperties.getUrl(), hiveConfigProperties.getUser(), hiveConfigProperties.getPassWord());
         }
         return conn;
     }
