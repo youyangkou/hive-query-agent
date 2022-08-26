@@ -311,7 +311,6 @@ public class HiveClient {
 
     private Connection getConn() throws ClassNotFoundException, SQLException {
         if (conn == null) {
-            System.out.println(hiveConfigProperties.toString());
             Class.forName(hiveConfigProperties.getDriverName());
             conn = DriverManager.getConnection(hiveConfigProperties.getUrl(), hiveConfigProperties.getUser(), hiveConfigProperties.getPassWord());
         }
