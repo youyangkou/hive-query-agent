@@ -81,12 +81,15 @@ public class QueryManager {
                                                                            hiveClient.cancelQuery(queryInstance);
                                                                        }
                                                                    }
-                                                                   //执行成功，将queryId从QUERY_MAP中删除
+                                                                   //执行成功或者失败，将queryId从QUERY_MAP中删除
                                                                    if (queryInstance.queryState == QueryState.SUCCESS) {
                                                                        QUERY_MAP.remove(queryId);
+                                                                       log.info("执行成功,query_id={},QUERY_BEAN:{}", queryId, queryInstance);
+                                                                   } else if (queryInstance.queryState == QueryState.FAILED) {
+                                                                       QUERY_MAP.remove(queryId);
+                                                                       log.info("执行失败,query_id={},QUERY_BEAN:{}", queryId, queryInstance);
                                                                    }
                                                                }
-                                                               log.info("执行成功,query_id={},QUERY_BEAN:{}", queryId, queryInstance);
                                                            } catch (Exception e) {
                                                                log.error("执行出现异常,query_id={},QUERY_BEAN:{}", queryId, queryInstance);
                                                                if (queryInstance == null || StringUtils.isEmpty(queryId)) {
@@ -184,7 +187,7 @@ public class QueryManager {
 
         String ds = TimeUtil.getToday();
 
-        String queryId = String.format("%s_%s",sql.toLowerCase().replaceAll(" ", "").trim().hashCode(),ds);
+        String queryId = String.format("%s_%s", sql.toLowerCase().replaceAll(" ", "").trim().hashCode(), ds);
         String tmpTable = "";
 
         if (!isOnlyQuery) {

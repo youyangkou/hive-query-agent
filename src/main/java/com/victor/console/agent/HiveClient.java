@@ -59,6 +59,7 @@ public class HiveClient {
             if (!StringUtils.isEmpty(queryId)) {
                 queryInstance.setExecutionTime(System.currentTimeMillis() / 1000);
                 String useDBsql = new StringBuilder("use ").append(queryInstance.project).toString();
+                stmt.execute("set mapreduce.job.queuename=root.users.root");
                 stmt.execute(useDBsql);
                 if (queryInstance.isOnlyQuery) {
                     log.info("SQL:{}，是只查询SQL，不创建临时表", queryInstance.querySql);
@@ -183,6 +184,7 @@ public class HiveClient {
 
     /**
      * 获取查询日志，适合配合waitForOperationToComplete方法使用，日志获取完成才会返回给客户端
+     *
      * @param queryInstance
      * @param incremental
      * @return
@@ -199,6 +201,8 @@ public class HiveClient {
                 queryInstance.log = sb.toString();
                 if (logItem.contains("INFO  : OK")) {
                     queryInstance.queryState = QueryState.SUCCESS;
+                } else if (logItem.contains("ERROR") || logItem.contains("Exception")) {
+                    queryInstance.queryState = QueryState.FAILED;
                 }
             }
         }
@@ -208,6 +212,7 @@ public class HiveClient {
 
     /**
      * 等待异步执行，客户端使用while循环调用
+     *
      * @param queryInstance
      * @return
      * @throws Exception
@@ -217,10 +222,9 @@ public class HiveClient {
         HiveStatement stmt = queryInstance.getStmt();
         if (stmt != null) {
             queryInstance = getExecterLog(queryInstance, true);
-            if (!Strings.isNullOrEmpty(queryInstance.queryId)
-                    && queryInstance.queryState == QueryState.SUCCESS
-                    && statementMap.containsKey(queryInstance)) {
-                statementMap.remove(queryInstance);
+            if (!Strings.isNullOrEmpty(queryInstance.queryId) && statementMap.containsKey(queryInstance)) {
+                if (queryInstance.queryState == QueryState.SUCCESS || queryInstance.queryState == QueryState.FAILED)
+                    statementMap.remove(queryInstance);
             }
         } else {
             log.error("sql {} stmt has been close!", queryInstance.getQueryId());
@@ -233,6 +237,7 @@ public class HiveClient {
 
     /**
      * 获取查询日志，适合配合waitExecutionForComplete使用，客户端使用while循环可以不断获取日志输出
+     *
      * @param stmt
      * @param incremental
      * @param isEnd
@@ -252,8 +257,6 @@ public class HiveClient {
         }
         return Tuple2.apply(sb.toString(), isEnd);
     }
-
-
 
 
     /**
