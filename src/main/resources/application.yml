@@ -58,3 +58,4 @@ hive-conf:
   url: jdbc:hive2://localhost:10000/test
   user: root
   passWord: 123456
+  yarnQueuename: root.users.root

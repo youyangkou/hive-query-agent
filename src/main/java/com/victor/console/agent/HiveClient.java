@@ -59,7 +59,8 @@ public class HiveClient {
             if (!StringUtils.isEmpty(queryId)) {
                 queryInstance.setExecutionTime(System.currentTimeMillis() / 1000);
                 String useDBsql = new StringBuilder("use ").append(queryInstance.project).toString();
-                stmt.execute("set mapreduce.job.queuename=root.users.root");
+                String yarnQueueSql = new StringBuilder("set mapreduce.job.queuename=").append(hiveConfigProperties.getYarnQueuename()).toString();
+                stmt.execute(yarnQueueSql);
                 stmt.execute(useDBsql);
                 if (queryInstance.isOnlyQuery) {
                     log.info("SQL:{}，是只查询SQL，不创建临时表", queryInstance.querySql);
