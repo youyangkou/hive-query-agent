@@ -5,7 +5,7 @@ This is a proxy service that supports the submission of Hive asynchronous ETL jo
 
 ##### 实现方案
 1. 使用HiveServer2实现异步提交，HiveServer2异步执行底层使用thrift实现
-2. 使用阻塞队列实现不会扎堆提交
+2. 使用线程池+阻塞队列的方式实现任务管理和提交
 3. 使用元数据表记录整个提交及执行记录
 
 
