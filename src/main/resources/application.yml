@@ -12,12 +12,15 @@ logging:
     root: info
 
 spring:
-  application.name: jscala-victor
+  application.name: query-agent
   servlet:
     multipart:
       enabled: true
       max-file-size: 500MB
       max-request-size: 500MB
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   datasource:
     dynamic:
       p6spy: true

@@ -7,14 +7,11 @@ import com.victor.console.domain.ResponseCode;
 import com.victor.console.domain.RestResponse;
 import com.victor.console.entity.HiveQueryBean;
 import com.victor.console.service.HiveQueryService;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 
@@ -23,6 +20,7 @@ import java.util.Date;
  * @date 2022-08-12
  */
 @Slf4j
+@Api(tags = "查询引擎")
 @RestController
 @RequestMapping("/queryAgent")
 public class HiveQueryController {
@@ -39,8 +37,9 @@ public class HiveQueryController {
      * @param query_sql
      * @return
      */
+    @ApiOperation("新增查询")
     @PostMapping("add")
-    public RestResponse add(@ApiParam(value = "query_sql") String query_sql, @ApiParam(value = "project") String project) {
+    public RestResponse add(@ApiParam(value = "query_sql") @RequestParam String query_sql, @ApiParam(value = "project") @RequestParam String project) {
         QueryInstance queryInstance = queryManager.generateQueryBean(project, query_sql, false);
 
         HiveQueryBean hiveQueryBean = hiveQueryService.get(queryInstance.getQueryId());
@@ -72,8 +71,9 @@ public class HiveQueryController {
      * @param query_id
      * @return
      */
+    @ApiOperation("查询状态")
     @GetMapping("state")
-    public RestResponse state(@ApiParam(value = "query_id") String query_id) {
+    public RestResponse state(@ApiParam(value = "query_id") @RequestParam String query_id) {
         HiveQueryBean hiveQueryBean = hiveQueryService.get(query_id);
         if (hiveQueryBean != null) {
             return RestResponse.success(hiveQueryBean.getQueryState());
@@ -89,13 +89,14 @@ public class HiveQueryController {
      * @param query_id
      * @return
      */
+    @ApiOperation("查询日志")
     @GetMapping("log")
-    public RestResponse log(@ApiParam(value = "query_id") String query_id) {
+    public RestResponse log(@ApiParam(value = "query_id") @RequestParam String query_id) {
         HiveQueryBean hiveQueryBean = hiveQueryService.get(query_id);
         if (hiveQueryBean != null) {
             String log = hiveQueryBean.getLog();
             if(StringUtils.isEmpty(log)){
-               log="There is currently no log generated for the job！";
+                log="There is currently no log generated for the job！";
             }
             return RestResponse.success(log);
         } else {
@@ -110,8 +111,9 @@ public class HiveQueryController {
      * @param query_id
      * @return
      */
+    @ApiOperation("取消查询")
     @PostMapping("cancel")
-    public RestResponse cancel(@ApiParam(value = "query_id") String query_id) {
+    public RestResponse cancel(@ApiParam(value = "query_id") @RequestParam String query_id) {
         HiveQueryBean hiveQueryBean = hiveQueryService.get(query_id);
 
         if (hiveQueryBean != null
@@ -132,23 +134,24 @@ public class HiveQueryController {
         }
     }
 
-
+    @ApiOperation("根据query_id查询")
     @GetMapping("select")
-    public RestResponse select(@ApiParam(value = "query_id") String query_id) {
+    public RestResponse select(@ApiParam(value = "query_id") @RequestParam String query_id) {
         return RestResponse.success(hiveQueryService.get(query_id));
     }
 
-
+    @ApiOperation("删除查询")
     @PostMapping("delete")
-    public RestResponse delete(@ApiParam(value = "query_id") String query_id) {
+    public RestResponse delete(@ApiParam(value = "query_id") @RequestParam String query_id) {
         HiveQueryBean hiveQueryBeanById = hiveQueryService.get(query_id);
         hiveQueryService.delete(query_id);
         return RestResponse.success(hiveQueryBeanById);
     }
 
 
+    @ApiOperation("更新查询状态")
     @PostMapping("update")
-    public RestResponse update(@ApiParam(value = "query_id") String query_id, @ApiParam(value = "query_state") String query_state) {
+    public RestResponse update(@ApiParam(value = "query_id") @RequestParam String query_id, @ApiParam(value = "query_state") @RequestParam String query_state) {
         HiveQueryBean hiveQueryBean = hiveQueryService.get(query_id);
         hiveQueryBean.setQueryState(query_state);
         return RestResponse.success(hiveQueryService.update(hiveQueryBean));
